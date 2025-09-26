@@ -180,24 +180,24 @@ func (r *WebserverReconciler) mutateDeployment(deployment *appsv1.Deployment, we
 				"instance": webserver.Name,
 			},
 		},
-			Template: corev1.PodTemplateSpec{
-				ObjectMeta: metav1.ObjectMeta{
-					Labels: map[string]string{
-						"app":      "webserver",
-						"instance": webserver.Name,
-					},
+		Template: corev1.PodTemplateSpec{
+			ObjectMeta: metav1.ObjectMeta{
+				Labels: map[string]string{
+					"app":      "webserver",
+					"instance": webserver.Name,
 				},
+			},
 			Spec: corev1.PodSpec{
-					Containers: []corev1.Container{
-						{
-							Name:  "webserver",
-							Image: webserver.Spec.Image,
-							Ports: []corev1.ContainerPort{
-								{
-									ContainerPort: webserver.Spec.Port,
-									Name:          "http",
-								},
+				Containers: []corev1.Container{
+					{
+						Name:  "webserver",
+						Image: webserver.Spec.Image,
+						Ports: []corev1.ContainerPort{
+							{
+								ContainerPort: webserver.Spec.Port,
+								Name:          "http",
 							},
+						},
 						VolumeMounts: []corev1.VolumeMount{
 							{
 								Name:      "html-content",
@@ -212,10 +212,10 @@ func (r *WebserverReconciler) mutateDeployment(deployment *appsv1.Deployment, we
 						Name: "html-content",
 						VolumeSource: corev1.VolumeSource{
 							ConfigMap: &corev1.ConfigMapVolumeSource{
-										LocalObjectReference: corev1.LocalObjectReference{
-											Name: webserver.Name + "-config",
-										},
-									},
+								LocalObjectReference: corev1.LocalObjectReference{
+									Name: webserver.Name + "-config",
+								},
+							},
 						},
 					},
 				},
