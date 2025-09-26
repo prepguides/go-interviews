@@ -1,0 +1,17 @@
+apiVersion: webserver.io/v1alpha1
+kind: Webserver
+metadata:
+  name: webserver-sample
+  namespace: default
+spec:
+  replicas: 2
+  image: nginx:1.25
+  port: 80
+  serviceType: LoadBalancer
+  config:
+    title: "Webserver Operator Demo"
+    message: "Welcome to the Webserver Operator Demo! This web server was deployed by our custom operator."
+    color: "#e3f2fd"
+    features:
+      feature1: true
+      feature2: false
