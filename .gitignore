@@ -48,3 +48,4 @@ operator/controller-gen
 # Temporary files
 *.tmp
 *.temp
+patterns/bin/

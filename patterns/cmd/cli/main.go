@@ -7,7 +7,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/webserver/go-interviews/patterns/pkg/utils"
+	"github.com/kubermatic/go-interviews/patterns/pkg/utils"
 )
 
 // CLI demonstrates command-line argument parsing and subcommands

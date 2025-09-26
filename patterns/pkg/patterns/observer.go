@@ -45,7 +45,7 @@ func NewEventBus() *EventBus {
 func (eb *EventBus) Subscribe(observer Observer) error {
 	eb.mutex.Lock()
 	defer eb.mutex.Unlock()
-	
+
 	eb.observers[observer.GetID()] = observer
 	return nil
 }
@@ -54,7 +54,7 @@ func (eb *EventBus) Subscribe(observer Observer) error {
 func (eb *EventBus) Unsubscribe(observerID string) error {
 	eb.mutex.Lock()
 	defer eb.mutex.Unlock()
-	
+
 	delete(eb.observers, observerID)
 	return nil
 }
@@ -67,7 +67,7 @@ func (eb *EventBus) NotifyObservers(ctx context.Context, event Event) error {
 		observers = append(observers, observer)
 	}
 	eb.mutex.RUnlock()
-	
+
 	// Notify all observers concurrently
 	var wg sync.WaitGroup
 	for _, observer := range observers {
@@ -77,7 +77,7 @@ func (eb *EventBus) NotifyObservers(ctx context.Context, event Event) error {
 			obs.Notify(ctx, event)
 		}(observer)
 	}
-	
+
 	wg.Wait()
 	return nil
 }

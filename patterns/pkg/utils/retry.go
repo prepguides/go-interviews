@@ -33,7 +33,7 @@ type RetryableFunc func() error
 // Retry executes a function with retry logic
 func Retry(ctx context.Context, config *RetryConfig, fn RetryableFunc) error {
 	var lastErr error
-	
+
 	for attempt := 0; attempt < config.MaxAttempts; attempt++ {
 		// Check if context is cancelled
 		select {
@@ -41,23 +41,23 @@ func Retry(ctx context.Context, config *RetryConfig, fn RetryableFunc) error {
 			return ctx.Err()
 		default:
 		}
-		
+
 		// Execute the function
 		err := fn()
 		if err == nil {
 			return nil // Success
 		}
-		
+
 		lastErr = err
-		
+
 		// Don't sleep after the last attempt
 		if attempt == config.MaxAttempts-1 {
 			break
 		}
-		
+
 		// Calculate delay
 		delay := calculateDelay(config, attempt)
-		
+
 		// Sleep with context cancellation support
 		select {
 		case <-time.After(delay):
@@ -65,7 +65,7 @@ func Retry(ctx context.Context, config *RetryConfig, fn RetryableFunc) error {
 			return ctx.Err()
 		}
 	}
-	
+
 	return fmt.Errorf("retry failed after %d attempts: %w", config.MaxAttempts, lastErr)
 }
 
@@ -73,19 +73,19 @@ func Retry(ctx context.Context, config *RetryConfig, fn RetryableFunc) error {
 func calculateDelay(config *RetryConfig, attempt int) time.Duration {
 	// Exponential backoff
 	delay := float64(config.BaseDelay) * math.Pow(config.Multiplier, float64(attempt))
-	
+
 	// Cap at max delay
 	if delay > float64(config.MaxDelay) {
 		delay = float64(config.MaxDelay)
 	}
-	
+
 	// Add jitter if enabled
 	if config.Jitter {
 		// Add up to 25% jitter
 		jitter := delay * 0.25 * (0.5 - math.Mod(float64(time.Now().UnixNano()), 1.0))
 		delay += jitter
 	}
-	
+
 	return time.Duration(delay)
 }
 
@@ -96,7 +96,7 @@ func RetryWithBackoff(ctx context.Context, fn RetryableFunc) error {
 
 // RetryableError represents an error that can be retried
 type RetryableError struct {
-	Err      error
+	Err       error
 	Retryable bool
 }
 

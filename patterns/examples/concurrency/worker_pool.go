@@ -12,10 +12,10 @@ import (
 
 // Job represents a unit of work
 type Job struct {
-	ID       int
-	Data     interface{}
-	Result   chan interface{}
-	Error    chan error
+	ID     int
+	Data   interface{}
+	Result chan interface{}
+	Error  chan error
 }
 
 // Worker represents a worker in the pool
@@ -83,18 +83,18 @@ type WorkerPool struct {
 func NewWorkerPool(numWorkers int, jobQueueSize int) *WorkerPool {
 	jobQueue := make(chan Job, jobQueueSize)
 	workers := make([]*Worker, numWorkers)
-	
+
 	pool := &WorkerPool{
 		JobQueue:   jobQueue,
 		NumWorkers: numWorkers,
 	}
-	
+
 	// Create workers
 	for i := 0; i < numWorkers; i++ {
 		workers[i] = NewWorker(i, jobQueue, &pool.Wg)
 	}
 	pool.Workers = workers
-	
+
 	return pool
 }
 
@@ -122,13 +122,13 @@ func (wp *WorkerPool) SubmitJob(job Job) {
 func (wp *WorkerPool) ProcessJobs(ctx context.Context, jobs []Job) ([]interface{}, []error) {
 	results := make([]interface{}, len(jobs))
 	errors := make([]error, len(jobs))
-	
+
 	// Submit all jobs
 	for i, job := range jobs {
 		job.Result = make(chan interface{}, 1)
 		job.Error = make(chan error, 1)
 		wp.SubmitJob(job)
-		
+
 		// Wait for result
 		select {
 		case result := <-job.Result:
@@ -139,7 +139,7 @@ func (wp *WorkerPool) ProcessJobs(ctx context.Context, jobs []Job) ([]interface{
 			errors[i] = ctx.Err()
 		}
 	}
-	
+
 	return results, errors
 }
 
@@ -149,7 +149,7 @@ func ExampleWorkerPool() {
 	pool := NewWorkerPool(3, 10)
 	pool.Start()
 	defer pool.Stop()
-	
+
 	// Create some jobs
 	jobs := make([]Job, 5)
 	for i := 0; i < 5; i++ {
@@ -158,13 +158,13 @@ func ExampleWorkerPool() {
 			Data: fmt.Sprintf("data-%d", i),
 		}
 	}
-	
+
 	// Process jobs
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
-	
+
 	results, errors := pool.ProcessJobs(ctx, jobs)
-	
+
 	// Print results
 	for i, result := range results {
 		if errors[i] != nil {

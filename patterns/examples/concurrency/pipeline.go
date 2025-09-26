@@ -24,7 +24,7 @@ type TransformStage[T, U any] struct {
 // Process processes input data and returns transformed data
 func (s *TransformStage[T, U]) Process(ctx context.Context, input <-chan T) <-chan U {
 	output := make(chan U)
-	
+
 	go func() {
 		defer close(output)
 		for {
@@ -44,7 +44,7 @@ func (s *TransformStage[T, U]) Process(ctx context.Context, input <-chan T) <-ch
 			}
 		}
 	}()
-	
+
 	return output
 }
 
@@ -57,7 +57,7 @@ type FilterStage[T any] struct {
 // Process processes input data and returns filtered data
 func (s *FilterStage[T]) Process(ctx context.Context, input <-chan T) <-chan T {
 	output := make(chan T)
-	
+
 	go func() {
 		defer close(output)
 		for {
@@ -78,7 +78,7 @@ func (s *FilterStage[T]) Process(ctx context.Context, input <-chan T) <-chan T {
 			}
 		}
 	}()
-	
+
 	return output
 }
 
@@ -103,7 +103,7 @@ func (p *Pipeline[T]) AddStage(stage Stage[any, any]) *Pipeline[T] {
 // Process processes data through the pipeline
 func (p *Pipeline[T]) Process(ctx context.Context, input <-chan T) <-chan any {
 	current := make(chan any)
-	
+
 	// Convert input to any type
 	go func() {
 		defer close(current)
@@ -123,13 +123,14 @@ func (p *Pipeline[T]) Process(ctx context.Context, input <-chan T) <-chan any {
 			}
 		}
 	}()
-	
+
 	// Process through each stage
+	var output <-chan any = current
 	for _, stage := range p.stages {
-		current = stage.Process(ctx, current)
+		output = stage.Process(ctx, output)
 	}
-	
-	return current
+
+	return output
 }
 
 // FanOutStage distributes data to multiple channels
@@ -141,12 +142,12 @@ type FanOutStage[T any] struct {
 // Process processes input data and distributes it to multiple workers
 func (s *FanOutStage[T]) Process(ctx context.Context, input <-chan T) <-chan T {
 	output := make(chan T)
-	
+
 	go func() {
 		defer close(output)
-		
+
 		var wg sync.WaitGroup
-		
+
 		for i := 0; i < s.NumWorkers; i++ {
 			wg.Add(1)
 			go func(workerID int) {
@@ -168,10 +169,10 @@ func (s *FanOutStage[T]) Process(ctx context.Context, input <-chan T) <-chan T {
 				}
 			}(i)
 		}
-		
+
 		wg.Wait()
 	}()
-	
+
 	return output
 }
 
@@ -185,10 +186,10 @@ func ExamplePipeline() {
 			input <- i
 		}
 	}()
-	
+
 	// Create pipeline
 	pipeline := NewPipeline[int]()
-	
+
 	// Add stages
 	pipeline.AddStage(&TransformStage[any, any]{
 		Transform: func(x any) any {
@@ -196,27 +197,27 @@ func ExamplePipeline() {
 		},
 		Name: "double",
 	})
-	
+
 	pipeline.AddStage(&FilterStage[any]{
 		Predicate: func(x any) bool {
 			return x.(int) > 5 // Filter numbers greater than 5
 		},
 		Name: "filter",
 	})
-	
+
 	pipeline.AddStage(&TransformStage[any, any]{
 		Transform: func(x any) any {
 			return fmt.Sprintf("processed: %d", x.(int)) // Convert to string
 		},
 		Name: "stringify",
 	})
-	
+
 	// Process data
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
-	
+
 	output := pipeline.Process(ctx, input)
-	
+
 	// Collect results
 	for result := range output {
 		fmt.Printf("Result: %v\n", result)

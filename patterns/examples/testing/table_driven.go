@@ -1,10 +1,11 @@
 package testing
 
 import (
-	"context"
 	"fmt"
 	"testing"
 	"time"
+
+	"github.com/kubermatic/go-interviews/patterns/pkg/interfaces"
 )
 
 // TableDrivenTests demonstrates table-driven testing in Go
@@ -12,10 +13,10 @@ import (
 
 // Calculator demonstrates a simple service for testing
 type Calculator struct {
-	Logger Logger
+	Logger interfaces.Logger
 }
 
-func NewCalculator(logger Logger) *Calculator {
+func NewCalculator(logger interfaces.Logger) *Calculator {
 	return &Calculator{
 		Logger: logger,
 	}
@@ -93,13 +94,13 @@ func TestCalculatorAdd(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			mockLogger := NewMockLogger()
 			calc := NewCalculator(mockLogger)
-			
+
 			result := calc.Add(tt.a, tt.b)
-			
+
 			if result != tt.expected {
 				t.Errorf("Add(%d, %d) = %d, expected %d", tt.a, tt.b, result, tt.expected)
 			}
-			
+
 			// Verify logging
 			if !mockLogger.AssertLogContains("info", "Addition performed") {
 				t.Error("Expected addition to be logged")
@@ -153,9 +154,9 @@ func TestCalculatorDivide(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			mockLogger := NewMockLogger()
 			calc := NewCalculator(mockLogger)
-			
+
 			result, err := calc.Divide(tt.a, tt.b)
-			
+
 			if tt.expectError {
 				if err == nil {
 					t.Errorf("Divide(%d, %d) expected error, got nil", tt.a, tt.b)
@@ -187,17 +188,17 @@ func TestCalculatorDivide(t *testing.T) {
 func TestCalculatorConcurrent(t *testing.T) {
 	mockLogger := NewMockLogger()
 	calc := NewCalculator(mockLogger)
-	
+
 	// Test concurrent additions
 	results := make(chan int, 10)
-	
+
 	for i := 0; i < 10; i++ {
 		go func(i int) {
 			result := calc.Add(i, i+1)
 			results <- result
 		}(i)
 	}
-	
+
 	// Collect results
 	collectedResults := make([]int, 0, 10)
 	for i := 0; i < 10; i++ {
@@ -208,12 +209,12 @@ func TestCalculatorConcurrent(t *testing.T) {
 			t.Fatal("Timeout waiting for concurrent results")
 		}
 	}
-	
+
 	// Verify we got 10 results
 	if len(collectedResults) != 10 {
 		t.Errorf("Expected 10 results, got %d", len(collectedResults))
 	}
-	
+
 	// Verify all results are positive (since we're adding i + (i+1))
 	for i, result := range collectedResults {
 		if result <= 0 {
@@ -226,7 +227,7 @@ func TestCalculatorConcurrent(t *testing.T) {
 func BenchmarkCalculatorAdd(b *testing.B) {
 	mockLogger := NewMockLogger()
 	calc := NewCalculator(mockLogger)
-	
+
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		calc.Add(i, i+1)
@@ -237,7 +238,7 @@ func BenchmarkCalculatorAdd(b *testing.B) {
 func BenchmarkCalculatorAddParallel(b *testing.B) {
 	mockLogger := NewMockLogger()
 	calc := NewCalculator(mockLogger)
-	
+
 	b.RunParallel(func(pb *testing.PB) {
 		i := 0
 		for pb.Next() {

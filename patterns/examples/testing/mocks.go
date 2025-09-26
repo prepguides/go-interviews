@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 	"time"
+
+	"github.com/kubermatic/go-interviews/patterns/pkg/interfaces"
 )
 
 // MockLogger implements the Logger interface for testing
@@ -44,22 +46,46 @@ func (m *MockLogger) Error(err error, msg string, keysAndValues ...interface{}) 
 	m.ErrorCalls = append(m.ErrorCalls, LogCall{Msg: msg, Args: keysAndValues})
 }
 
-func (m *MockLogger) WithValues(keysAndValues ...interface{}) Logger {
+func (m *MockLogger) WithValues(keysAndValues ...interface{}) interfaces.Logger {
 	return m // Simplified for testing
 }
 
-func (m *MockLogger) WithName(name string) Logger {
+func (m *MockLogger) WithName(name string) interfaces.Logger {
 	return m // Simplified for testing
+}
+
+// AssertLogContains checks if a log call contains expected content
+func (m *MockLogger) AssertLogContains(level string, expectedMsg string) bool {
+	var calls []LogCall
+	switch level {
+	case "debug":
+		calls = m.DebugCalls
+	case "info":
+		calls = m.InfoCalls
+	case "warn":
+		calls = m.WarnCalls
+	case "error":
+		calls = m.ErrorCalls
+	default:
+		return false
+	}
+
+	for _, call := range calls {
+		if call.Msg == expectedMsg {
+			return true
+		}
+	}
+	return false
 }
 
 // MockResourceManager implements the ResourceManager interface for testing
 type MockResourceManager struct {
-	Resources map[string]interface{}
-	GetError  error
+	Resources   map[string]interface{}
+	GetError    error
 	CreateError error
 	UpdateError error
 	DeleteError error
-	ListError  error
+	ListError   error
 }
 
 func NewMockResourceManager() *MockResourceManager {
@@ -116,9 +142,9 @@ func (m *MockResourceManager) List(ctx context.Context, selector string) ([]inte
 
 // MockHealthChecker implements the HealthChecker interface for testing
 type MockHealthChecker struct {
-	Healthy bool
-	Message string
-	Details map[string]interface{}
+	Healthy    bool
+	Message    string
+	Details    map[string]interface{}
 	CheckError error
 }
 
@@ -138,8 +164,8 @@ func (m *MockHealthChecker) IsHealthy() bool {
 	return m.Healthy
 }
 
-func (m *MockHealthChecker) GetHealthStatus() HealthStatus {
-	return HealthStatus{
+func (m *MockHealthChecker) GetHealthStatus() interfaces.HealthStatus {
+	return interfaces.HealthStatus{
 		Healthy: m.Healthy,
 		Message: m.Message,
 		Details: m.Details,
@@ -148,23 +174,23 @@ func (m *MockHealthChecker) GetHealthStatus() HealthStatus {
 
 // TestHelper provides common testing utilities
 type TestHelper struct {
-	MockLogger         *MockLogger
+	MockLogger          *MockLogger
 	MockResourceManager *MockResourceManager
-	MockHealthChecker  *MockHealthChecker
+	MockHealthChecker   *MockHealthChecker
 }
 
 func NewTestHelper() *TestHelper {
 	return &TestHelper{
-		MockLogger:         NewMockLogger(),
+		MockLogger:          NewMockLogger(),
 		MockResourceManager: NewMockResourceManager(),
-		MockHealthChecker:  NewMockHealthChecker(),
+		MockHealthChecker:   NewMockHealthChecker(),
 	}
 }
 
 // AssertLogContains checks if a log call contains expected content
 func (th *TestHelper) AssertLogContains(level string, expectedMsg string) bool {
 	var calls []LogCall
-	
+
 	switch level {
 	case "debug":
 		calls = th.MockLogger.DebugCalls
@@ -177,7 +203,7 @@ func (th *TestHelper) AssertLogContains(level string, expectedMsg string) bool {
 	default:
 		return false
 	}
-	
+
 	for _, call := range calls {
 		if call.Msg == expectedMsg {
 			return true

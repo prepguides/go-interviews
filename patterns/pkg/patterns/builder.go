@@ -11,15 +11,15 @@ import (
 
 // WebServerConfig represents the configuration for a web server
 type WebServerConfig struct {
-	Host         string
-	Port         int
-	ReadTimeout  time.Duration
-	WriteTimeout time.Duration
+	Host           string
+	Port           int
+	ReadTimeout    time.Duration
+	WriteTimeout   time.Duration
 	MaxConnections int
-	EnableTLS    bool
-	CertFile     string
-	KeyFile      string
-	Middlewares  []string
+	EnableTLS      bool
+	CertFile       string
+	KeyFile        string
+	Middlewares    []string
 }
 
 // WebServerConfigBuilder provides a fluent interface for building WebServerConfig
@@ -31,12 +31,12 @@ type WebServerConfigBuilder struct {
 func NewWebServerConfigBuilder() *WebServerConfigBuilder {
 	return &WebServerConfigBuilder{
 		config: &WebServerConfig{
-			Host:         "localhost",
-			Port:         8080,
-			ReadTimeout:  30 * time.Second,
-			WriteTimeout: 30 * time.Second,
+			Host:           "localhost",
+			Port:           8080,
+			ReadTimeout:    30 * time.Second,
+			WriteTimeout:   30 * time.Second,
 			MaxConnections: 1000,
-			EnableTLS:    false,
+			EnableTLS:      false,
 		},
 	}
 }
